@@ -9,10 +9,28 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
         #output {
             margin-top: 20px;
             font-weight: bold;
+        }
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #ingredientsList {
+            margin-right: 20px;
+            text-align: left;
+        }
+        #imagePreview {
+            max-width: 300px;
+            max-height: 300px;
+            margin-left: 20px;
         }
     </style>
 </head>
@@ -20,8 +38,13 @@
     <h1>Receipt OCR Extractor</h1>
     <input type="file" id="imageInput" accept="image/*">
     <button onclick="extractText()">Extract Ingredients</button>
-    <p id="output"></p>
-    
+    <div id="container">
+        <div id="ingredientsList">
+            <p id="output"></p>
+        </div>
+        <img id="imagePreview" src="" alt="Uploaded Image">
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
     <script>
         let ingredientSet = new Set();
@@ -40,6 +63,7 @@
         async function extractText() {
             const fileInput = document.getElementById('imageInput');
             const output = document.getElementById('output');
+            const imagePreview = document.getElementById('imagePreview');
             
             if (fileInput.files.length === 0) {
                 output.textContent = "Please upload a receipt image.";
@@ -51,8 +75,9 @@
             
             reader.onload = async function () {
                 const image = reader.result;
+                imagePreview.src = image; // Display the uploaded image
+                
                 const { data: { text } } = await Tesseract.recognize(image, 'eng');
-
                 const words = text.toLowerCase().split(/\s+/);
                 
                 // Match any word that contains an ingredient substring
