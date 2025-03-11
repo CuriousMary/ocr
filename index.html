@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt OCR Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Receipt OCR Extractor</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="extractText()">Extract Ingredients</button>
+    <p id="output"></p>
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+    <script>
+        async function extractText() {
+            const fileInput = document.getElementById('imageInput');
+            const output = document.getElementById('output');
+            
+            if (fileInput.files.length === 0) {
+                output.textContent = "Please upload a receipt image.";
+                return;
+            }
+            
+            const imageFile = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function () {
+                const image = reader.result;
+                const { data: { text } } = await Tesseract.recognize(image, 'eng');
+                
+                const commonIngredients = ["milk", "eggs", "flour", "sugar", "salt", "butter", "cheese", "chicken", "beef", "pork",
+                                          "tomato", "onion", "garlic", "pepper", "carrot", "lettuce", "rice", "pasta", "oil", "vinegar"];
+                
+                const words = text.toLowerCase().split(/\s+/);
+                const ingredients = words.filter(word => commonIngredients.includes(word));
+                
+                output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
+            };
+            
+            reader.readAsDataURL(imageFile);
+        }
+    </script>
+</body>
+</html>
