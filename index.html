@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt OCR Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #ingredientsList {
+            margin-right: 20px;
+            text-align: left;
+        }
+        #imagePreview {
+            max-width: 300px;
+            max-height: 300px;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Receipt OCR Extractor</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="extractText()">Extract Ingredients</button>
+    <div id="container">
+        <div id="ingredientsList">
+            <p id="output">Extracted Ingredients: </p>
+            <p id="extractedText">Extracted Text: </p>
+        </div>
+        <img id="imagePreview" src="" alt="Uploaded Image">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+    <script>
+        let ingredientSet = new Set();
+
+        // Load the JSON ingredient list
+        async function loadIngredients() {
+            try {
+                const response = await fetch("ingredients.json");
+                const data = await response.json();
+                ingredientSet = new Set(data.ingredients.map(item => item.toLowerCase()));
+            } catch (error) {
+                console.error("Error loading ingredients:", error);
+            }
+        }
+
+        async function extractText() {
+            const fileInput = document.getElementById('imageInput');
+            const output = document.getElementById('output');
+            const extractedText = document.getElementById('extractedText');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            if (fileInput.files.length === 0) {
+                output.textContent = "Please upload a receipt image.";
+                extractedText.textContent = "";
+                return;
+            }
+            
+            const imageFile = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function () {
+                const image = reader.result;
+                imagePreview.src = image; // Display the uploaded image
+                
+                const { data: { text } } = await Tesseract.recognize(image, 'eng');
+                extractedText.textContent = `Extracted Text: ${text}`; // Display raw extracted text
+
+                const words = text.toLowerCase().split(/\s+/);
+                
+                // Match any word that contains an ingredient substring
+                const ingredients = words.filter(word => {
+                    return [...ingredientSet].some(ingredient => word.includes(ingredient));
+                });
+                
+                // Output the extracted ingredients or no results found
+                output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
+            };
+            
+            reader.readAsDataURL(imageFile);
+        }
+
+        // Load ingredients when the page loads
+        loadIngredients();
+    </script>
+</body>
+</html>
