@@ -26,17 +26,12 @@
     <script>
         let ingredientSet = new Set();
 
-        // Fetch ingredients from the USDA Food Database API
+        // Load the JSON ingredient list
         async function loadIngredients() {
-            const apiKey = 'YOUR_USDA_API_KEY'; // Replace with your actual USDA API key
-            const url = `https://api.nal.usda.gov/fdc/v1/foods/list?api_key=${apiKey}&pageSize=1000`; // Adjust the page size based on the number of items you want
-
             try {
-                const response = await fetch(url);
+                const response = await fetch("ingredients.json");
                 const data = await response.json();
-                if (data.foods) {
-                    ingredientSet = new Set(data.foods.map(item => item.description.toLowerCase()));
-                }
+                ingredientSet = new Set(data.ingredients.map(item => item.toLowerCase()));
             } catch (error) {
                 console.error("Error loading ingredients:", error);
             }
@@ -59,11 +54,7 @@
                 const { data: { text } } = await Tesseract.recognize(image, 'eng');
 
                 const words = text.toLowerCase().split(/\s+/);
-                
-                // Match any word that contains an ingredient substring
-                const ingredients = words.filter(word => {
-                    return [...ingredientSet].some(ingredient => word.includes(ingredient));
-                });
+                const ingredients = words.filter(word => ingredientSet.has(word));
                 
                 output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
             };
