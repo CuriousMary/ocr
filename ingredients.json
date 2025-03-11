@@ -87,7 +87,9 @@
       "malt", "agave", "maple syrup", "molasses", "date syrup", "palm sugar", "brown sugar", "coconut sugar", 
       "monk fruit sweetener", "stevia", "erythritol", "xylitol", "sorghum", "teff", "millet", "farro", 
       "spelt", "kamut", "freekeh", "buckwheat", "rye", "amaranth", "polenta", "grits", "masa", "couscous", 
-      "bulgur", "vermicelli", "glass noodles", "soba noodles", "yakisoba", "pad thai noodles", "pho noodles"
+      "bulgur", "vermicelli", "glass noodles", "soba noodles", "yakisoba", "pad thai noodles", "pho noodles",
+      "burger", "porridge", "wholemeal", "jam", "passata", "kidney bean", "baked beans", "jacket potato",
+      "spaghetti", "ice-cream", "milk cream"
     ]
   }
   
