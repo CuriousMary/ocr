@@ -54,7 +54,11 @@
                 const { data: { text } } = await Tesseract.recognize(image, 'eng');
 
                 const words = text.toLowerCase().split(/\s+/);
-                const ingredients = words.filter(word => ingredientSet.has(word));
+                
+                // Match any word that contains an ingredient substring
+                const ingredients = words.filter(word => {
+                    return [...ingredientSet].some(ingredient => word.includes(ingredient));
+                });
                 
                 output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
             };
