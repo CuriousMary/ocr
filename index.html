@@ -41,6 +41,7 @@
     <div id="container">
         <div id="ingredientsList">
             <p id="output">Extracted Ingredients: </p>
+            <p id="extractedText">Extracted Text: </p>
         </div>
         <img id="imagePreview" src="" alt="Uploaded Image">
     </div>
@@ -63,10 +64,12 @@
         async function extractText() {
             const fileInput = document.getElementById('imageInput');
             const output = document.getElementById('output');
+            const extractedText = document.getElementById('extractedText');
             const imagePreview = document.getElementById('imagePreview');
             
             if (fileInput.files.length === 0) {
                 output.textContent = "Please upload a receipt image.";
+                extractedText.textContent = "";
                 return;
             }
             
@@ -78,6 +81,8 @@
                 imagePreview.src = image; // Display the uploaded image
                 
                 const { data: { text } } = await Tesseract.recognize(image, 'eng');
+                extractedText.textContent = `Extracted Text: ${text}`; // Display raw extracted text
+
                 const words = text.toLowerCase().split(/\s+/);
                 
                 // Match any word that contains an ingredient substring
