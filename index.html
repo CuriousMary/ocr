@@ -32,35 +32,23 @@
             max-height: 300px;
             margin-left: 20px;
         }
-        video {
-            width: 300px;
-            height: 300px;
-            border: 2px solid black;
-        }
     </style>
 </head>
 <body>
     <h1>Receipt OCR Extractor</h1>
-    <video id="camera" autoplay></video>
-    <button onclick="captureImage()">Take Photo</button>
-    <canvas id="canvas" style="display:none;"></canvas>
+    <input type="file" id="imageInput" accept="image/*">
     <button onclick="extractText()">Extract Ingredients</button>
-
     <div id="container">
         <div id="ingredientsList">
             <p id="output">Extracted Ingredients: </p>
             <p id="extractedText">Extracted Text: </p>
         </div>
-        <img id="imagePreview" src="" alt="Captured Image">
+        <img id="imagePreview" src="" alt="Uploaded Image">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
     <script>
         let ingredientSet = new Set();
-        const video = document.getElementById('camera');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let capturedImage = null;
 
         // Load the JSON ingredient list
         async function loadIngredients() {
@@ -73,57 +61,44 @@
             }
         }
 
-        // Start camera stream
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" } // Use back camera
-                });
-                video.srcObject = stream;
-            } catch (error) {
-                console.error("Error accessing camera:", error);
-                alert("Could not access the camera. Please allow camera permissions.");
-            }
-        }
-
-        // Capture image from video stream
-        function captureImage() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImage = canvas.toDataURL("image/png");
-
-            // Show captured image
-            document.getElementById('imagePreview').src = capturedImage;
-        }
-
-        // Extract text using OCR
         async function extractText() {
-            if (!capturedImage) {
-                alert("Please take a photo first.");
-                return;
-            }
-
+            const fileInput = document.getElementById('imageInput');
             const output = document.getElementById('output');
             const extractedText = document.getElementById('extractedText');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            if (fileInput.files.length === 0) {
+                output.textContent = "Please upload a receipt image.";
+                extractedText.textContent = "";
+                return;
+            }
+            
+            const imageFile = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function () {
+                const image = reader.result;
+                imagePreview.src = image; // Display the uploaded image
+                
+                const { data: { text } } = await Tesseract.recognize(image, 'eng');
+                extractedText.textContent = `Extracted Text: ${text}`; // Display raw extracted text
 
-            output.textContent = "Processing...";
-            extractedText.textContent = "";
+                const words = text.toLowerCase().split(/\s+/);
+                
+                // Match any word that contains an ingredient substring
+                const ingredients = words.filter(word => {
+                    return [...ingredientSet].some(ingredient => word.includes(ingredient));
+                });
 
-            const { data: { text } } = await Tesseract.recognize(capturedImage, 'eng');
-            extractedText.textContent = `Extracted Text: ${text}`; // Display raw extracted text
-
-            const words = text.toLowerCase().split(/\s+/);
-            const ingredients = words.filter(word => {
-                return [...ingredientSet].some(ingredient => word.includes(ingredient));
-            });
-
-            output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
+                // Output the extracted ingredients or no results found
+                output.textContent = ingredients.length > 0 ? `Extracted Ingredients: ${ingredients.join(", ")}` : "No ingredients found.";
+            };
+            
+            reader.readAsDataURL(imageFile);
         }
 
-        // Load ingredients and start camera when the page loads
+        // Load ingredients when the page loads
         loadIngredients();
-        startCamera();
     </script>
 </body>
 </html>
